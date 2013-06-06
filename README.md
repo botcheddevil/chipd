@@ -1,4 +1,4 @@
-## **C**ontent { **Hi**gh **P**erformance } **D**elivery
+## **C**ontent { **HI**gh **P**erformance } **D**elivery
 
 Chipd is a webserver for static content. It gains performance from preloading all the static files to the memory.
 
