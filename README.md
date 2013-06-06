@@ -6,7 +6,7 @@ Chipd is a webserver for static content. It gains performance from preloading al
 
 We have a long way to go!
 
- * Implement a hasher
- * http parser
+ * Implement a hasher [DONE]
+ * http parser [DONE]
  * loading files to memory
  * multithreading [DONE]
