@@ -1,6 +1,10 @@
-## **C**ontent { **HI**gh **P**erformance } **D**elivery
+# **C**ontent { **HI**gh **P**erformance } **D**elivery
 
 Chipd is a webserver for static content. It gains performance from preloading all the static files to the memory.
+
+##Philosophy
+
+Be Fast, Very Very Fast! How? Write less code ..
 
 ### Hash Algorithm : 
 
@@ -19,6 +23,6 @@ We have a long way to go!
  * loading files to memory
  * multithreading [DONE]
  * SSL
- * Support for compression
+ * Support for compression (gz/deflate)
  * Security
- * Portability : atleast *nix based systems
+ * Portability : atleast *nix based systems (may be Win too some day!)
