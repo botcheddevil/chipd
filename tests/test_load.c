@@ -7,6 +7,7 @@ int main()
 {
 
     void *cnt;
+    char *content = "marry had a little lamb, little lamb, little lamb";
 
     headers httphds =
     {
@@ -17,8 +18,10 @@ int main()
         "gzip"
     };
 
-    cnt  = load_httpcontent_memory ( &httphds,
-                                     NULL, ( size_t ) 1 );
+    printf ( "String : %s\n", content );
+
+    cnt  = hpcd_load_httpcontent_memory ( &httphds,
+                                          ( void * ) content, strlen ( content ) );
 
     return 0;
 

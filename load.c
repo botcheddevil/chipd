@@ -6,7 +6,7 @@
 #include "chipd.h"
 #include "zlib.h"
 
-void *load_httpcontent_memory (
+void *hpcd_load_httpcontent_memory (
     headers *httphds, void *content,
     size_t content_length )
 {
@@ -79,16 +79,17 @@ void *load_httpcontent_memory (
 
     int err;
     Byte *compr, *uncompr;
-    uLong comprLen = 10000*sizeof ( int ); /* don't overflow on MSDOS */
+    uLong comprLen = ( int ) content_length *
+                     sizeof ( int ); /* don't overflow on MSDOS */
     uLong uncomprLen = comprLen;
-
 
     compr    = ( Byte * ) calloc ( ( uInt ) comprLen, 1 );
     uncompr  = ( Byte * ) calloc ( ( uInt ) uncomprLen, 1 );
 
+    printf ( "before strlen\n" );
 
-    err = compress ( compr, &comprLen, ( const Bytef * ) "hello, hello!",
-                     ( uLong ) strlen ( "hello, hello!" )+1 );
+    err = compress ( compr, &comprLen, ( const Bytef * ) content,
+                     ( uLong ) content_length + 1 );
     if ( err != Z_OK )
     {
         fprintf ( stderr, "%s error: %d\n", "compress", err );
@@ -105,9 +106,13 @@ void *load_httpcontent_memory (
         exit ( 1 );
     }
 
+    printf ( "Length Before compression %d\n",
+             ( int ) strlen ( ( char * ) content ) );
+
+    printf ( "Length After compression %lu\n", comprLen );
+
     printf ( "%s\n", uncompr );
 
     return ( void * ) content;
 
 }
-

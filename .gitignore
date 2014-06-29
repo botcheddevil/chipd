@@ -2,3 +2,4 @@ chipd
 a.out
 *.orig
 *.o
+*.lo

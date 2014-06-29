@@ -3,7 +3,7 @@
 #---------------------
 
 CC ?= gcc
-FORMATTER = ~/astyle/build/mac/bin/astyle
+FORMATTER = ~/Repos/astyle/build/mac/bin/astyle
 
 #------------
 #Final Binary
@@ -29,7 +29,7 @@ load.o: load.c
 #Auto Formatting
 #---------------
 
-format: 
+format:
 	$(FORMATTER) --verbose --style=bsd --indent=spaces=4 \
 		--align-pointer=name --pad-paren \
 		--pad-header --add-brackets \
@@ -46,7 +46,7 @@ http_parser.o: http_parser.c http_parser.h
 	$(CC) -c http_parser.c
 
 zlib:
-	cd ./lib/zlib-1.2.8/;#./configure;make
+	cd ./lib/zlib-1.2.8/;./configure;make
 
 #------------------------
 #Compile Tests
@@ -66,5 +66,6 @@ test_load.o:
 
 clean:
 	rm -f *.o a.out chipd test *.orig
-	rm ./lib/zlib-1.2.8/*.o ./lib/zlib-1.2.8/*.dylib
-	rm configure.log
+	rm -f ./tests/*.orig
+	rm -f ./lib/zlib-1.2.8/*.o ./lib/zlib-1.2.8/*.dylib
+	rm -f configure.log
