@@ -73,5 +73,5 @@ enum compression { none, c_gzip, c_deflate };
  * Load File Operations
  */
 
-void *hpcd_load_httpcontent_memory ( headers *, void *, size_t );
-void *hpcd_load_httpfile_memory ( char * , const int, compression );
+void *hpcd_load_httpcontent ( headers *, void *, size_t );
+void *hpcd_load_file ( char * , const int, compression );

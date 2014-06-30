@@ -7,7 +7,7 @@
  * Hash functions
  */
 
-unsigned hash_xor ( void *key, int len )
+unsigned hpcd_hash_xor ( void *key, int len )
 {
     unsigned char *p = key;
     unsigned h = 0;
@@ -21,7 +21,7 @@ unsigned hash_xor ( void *key, int len )
     return h;
 }
 
-unsigned hash_bernstine ( void *key, int len )
+unsigned hpcd_hash_bernstine ( void *key, int len )
 {
     unsigned int h;
     char *p = ( char * ) key;
@@ -36,7 +36,7 @@ unsigned hash_bernstine ( void *key, int len )
     return h;
 }
 
-unsigned hash_bernstine31 ( void *key, int len )
+unsigned hpcd_hash_bernstine31 ( void *key, int len )
 {
     unsigned int h;
     char *p = ( char * ) key;
@@ -51,7 +51,7 @@ unsigned hash_bernstine31 ( void *key, int len )
     return h;
 }
 
-unsigned hash_bernstine37 ( void *key, int len )
+unsigned hpcd_hash_bernstine37 ( void *key, int len )
 {
     unsigned int h;
     char *p = ( char * ) key;
@@ -66,7 +66,7 @@ unsigned hash_bernstine37 ( void *key, int len )
     return h;
 }
 
-unsigned hash_rot ( void *key, int len )
+unsigned hpcd_hash_rot ( void *key, int len )
 {
     unsigned char *p = key;
     unsigned h = 0;
@@ -80,7 +80,7 @@ unsigned hash_rot ( void *key, int len )
     return h;
 }
 
-unsigned hash_modbernstine ( void *key, int len )
+unsigned hpcd_hash_modbernstine ( void *key, int len )
 {
     unsigned char *p = key;
     unsigned h = 0;
@@ -94,7 +94,7 @@ unsigned hash_modbernstine ( void *key, int len )
     return h;
 }
 
-unsigned hash_sax ( void *key, int len )
+unsigned hpcd_hash_sax ( void *key, int len )
 {
     unsigned char *p = key;
     unsigned h = 0;
@@ -108,7 +108,7 @@ unsigned hash_sax ( void *key, int len )
     return h;
 }
 
-unsigned hash_fnv ( void *key, int len )
+unsigned hpcd_hash_fnv ( void *key, int len )
 {
     unsigned char *p = key;
     unsigned h = 2166136261;
@@ -122,7 +122,7 @@ unsigned hash_fnv ( void *key, int len )
     return h;
 }
 
-unsigned hash_oat ( void *key, int len )
+unsigned hpcd_hash_oat ( void *key, int len )
 {
     unsigned char *p = key;
     unsigned h = 0;
@@ -142,7 +142,7 @@ unsigned hash_oat ( void *key, int len )
     return h;
 }
 
-unsigned int hash_murmur2 ( void *key, int len )
+unsigned int hpcd_hash_murmur2 ( void *key, int len )
 {
     /* 'm' and 'r' are mixing constants generated offline.
      They're not really 'magic', they just happen to work well.  */
@@ -192,7 +192,7 @@ unsigned int hash_murmur2 ( void *key, int len )
     return ( unsigned int ) h;
 }
 
-unsigned hash_elf ( void *key, int len )
+unsigned hpcd_hash_elf ( void *key, int len )
 {
     unsigned char *p = key;
     unsigned h = 0, g;
@@ -230,7 +230,7 @@ unsigned hash_elf ( void *key, int len )
     c -= a; c -= b; c ^= ( b >> 15 ); \
 }
 
-unsigned int hash_jen ( void *key, int length )
+unsigned int hpcd_hash_jen ( void *key, int length )
 {
     unsigned a, b;
     unsigned int c = 2556445788;
@@ -296,7 +296,7 @@ unsigned int hash_jen ( void *key, int length )
  * Hash table Operations
  */
 
-hashtable *hash_createtable ( unsigned int ( * hash ) ( void *, int ),
+hashtable *hpcd_hash_table_create ( unsigned int ( * hash ) ( void *, int ),
                               int size )
 {
     hashtable *ht;
@@ -311,33 +311,33 @@ hashtable *hash_createtable ( unsigned int ( * hash ) ( void *, int ),
     return ht;
 }
 
-void hash_destroyitem ( item *itm )
+void hpcd_hash_item_destroy ( item *itm )
 {
 
     if ( itm == 0 )
     {
         return;
     }
-    hash_destroyitem ( itm->next );
+    hpcd_hash_item_destroy ( itm->next );
     free ( itm->key );
     free ( itm->content );
 
 }
 
-void hash_destroytable ( hashtable *ht )
+void hpcd_hash_table_destroy ( hashtable *ht )
 {
     int ctr = 0;
     item *nextitem;
 
     for ( ctr = 0; ctr < ht->size; ctr++ )
     {
-        hash_destroyitem ( ht->table[ctr] );
+        hpcd_hash_item_destroy ( ht->table[ctr] );
     }
 
     free ( ht );
 }
 
-hashtable *hash_resizetable ( hashtable *ht, int size )
+hashtable *hpcd_hash_table_resize ( hashtable *ht, int size )
 {
     int ctr = 0;
     item *nextitem;
@@ -353,7 +353,7 @@ hashtable *hash_resizetable ( hashtable *ht, int size )
         nextitem = ht->table[ctr];
         do
         {
-            hash_insert ( newht, nextitem );
+            hpcd_hash_item_insert ( newht, nextitem );
             if ( nextitem->next == 0 )
             {
                 break;
@@ -379,7 +379,7 @@ hashtable *hash_resizetable ( hashtable *ht, int size )
  *         item* if item is found
  */
 
-item *hash_fetch ( hashtable *ht, char *key )
+item *hpcd_hash_item_fetch ( hashtable *ht, char *key )
 {
 
     unsigned int index = ( *ht->algo ) ( key , strlen ( key ) );
@@ -419,7 +419,7 @@ item *hash_fetch ( hashtable *ht, char *key )
  * @param itm item*  item to insert
  */
 
-int hash_insert ( hashtable *ht, item *itm )
+int hpcd_hash_item_insert ( hashtable *ht, item *itm )
 {
 
     unsigned int index = ( *ht->algo ) ( itm->key , strlen ( itm->key ) );
@@ -478,7 +478,7 @@ int hash_insert ( hashtable *ht, item *itm )
  * @param itm item*  item to insert
  */
 
-int hash_remove ( hashtable *ht, char *key )
+int hpcd_hash_item_remove ( hashtable *ht, char *key )
 {
 
     unsigned int index = ( *ht->algo ) ( key , strlen ( key ) );

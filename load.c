@@ -6,7 +6,7 @@
 #include "chipd.h"
 #include "zlib.h"
 
-void *hpcd_load_httpcontent_memory (
+void *hpcd_load_httpcontent (
     headers *httphds, void *content,
     size_t content_length )
 {
@@ -115,4 +115,215 @@ void *hpcd_load_httpcontent_memory (
 
     return ( void * ) content;
 
+}
+
+void
+hpcd_load_directory ( const char *dir_name, item *ht[255], size_t base_url_length )
+{
+    DIR *d;
+    char *filename;
+
+    /* Open the directory specified by "dir_name". */
+    d = opendir ( dir_name );
+
+    /* Check it was opened. */
+    if ( ! d )
+    {
+        fprintf ( stderr, "Cannot open directory '%s': %s\n",
+                  dir_name, strerror ( errno ) );
+        exit ( EXIT_FAILURE );
+    }
+
+    /** Start looking for files to load**/
+    while ( 1 )
+    {
+        struct dirent *entry;
+        const char *d_name;
+
+        /* "Readdir" gets subsequent entries from "d". */
+        entry = readdir ( d );
+        if ( ! entry )
+        {
+            /* There are no more entries in this directory, so break
+               out of the while loop. */
+            break;
+        }
+
+        d_name = entry->d_name;
+
+        /* Print the name of the file and directory. */
+        int length = strlen ( dir_name ) + strlen ( d_name ) + 1;
+        filename = ( char * ) calloc ( length, sizeof ( char ) );
+
+        strcat ( filename, dir_name );
+        strcat ( filename, "/" );
+        strcat ( filename, d_name );
+
+        /* See if "entry" is a subdirectory of "d". */
+        if ( entry->d_type & DT_DIR )
+        {
+
+            /* Check that the directory is not "d" or d's parent. */
+
+            if ( strcmp ( d_name, ".." ) != 0 &&
+                    strcmp ( d_name, "." ) != 0 )
+            {
+                int path_length;
+                char path[PATH_MAX];
+
+                path_length = snprintf ( path, PATH_MAX,
+                                         "%s/%s", dir_name, d_name );
+
+                if ( path_length >= PATH_MAX )
+                {
+                    fprintf ( stderr, "Path length has got too long.\n" );
+                    exit ( EXIT_FAILURE );
+                }
+                /* Recursively call "list_dir" with the new path. */
+                printf ( "%s", filename );
+                printf ( " : Entering" );
+                printf ( "\n" );
+                load_dir ( path, ht, base_url_length );
+            }
+
+        }
+        else
+        {
+
+            hash_insert ( ht, load_file_memory ( filename, base_url_length ) );
+            printf ( "%s", filename );
+            printf ( " : Loaded\n" );
+
+        }
+    }
+    /* After going through all the entries, close the directory. */
+    if ( closedir ( d ) )
+    {
+        fprintf ( stderr, "Could not close '%s': %s\n",
+                  dir_name, strerror ( errno ) );
+        exit ( EXIT_FAILURE );
+    }
+}
+
+item *
+hpcd_load_notfound ( char *status )
+{
+
+    /**
+     * --------------------
+     * Load files to memory
+     * --------------------
+     */
+
+    unsigned long RESPONSE_LENGTH;
+    const char *separator = "/";
+    item *itm = ( item * ) malloc ( sizeof ( item ) );
+
+    /** Get File Content */
+    char *content = "<h2>404 File Not Found</h2> chipd/0.1";
+
+    /** Build response **/
+    char *response_header_part1 =
+        "HTTP/1.1 404 Not Found\n"
+        "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+        "Server: chipd/0.1\n"
+        "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+        "ETag: \"56d-9989200-1132c580\"\n"
+        "Content-Type: text/html\n"
+        "Content-Length: ";
+
+    char *response_header_part3 =
+        "\n"
+        "Accept-Ranges: bytes\n"
+        "Connection: close\n"
+        "\n";
+
+    RESPONSE_LENGTH = strlen ( response_header_part1 ) + 10 + strlen (
+                          response_header_part3 ) + strlen ( content );
+    char *response = ( char * ) malloc ( RESPONSE_LENGTH );
+
+    /** Concat all string into response **/
+    snprintf ( response, ( size_t ) RESPONSE_LENGTH, "%s%lu%s",
+               response_header_part1, ( unsigned long ) strlen ( content ),
+               response_header_part3 );
+
+    /** Add file content **/
+    memcpy ( response + ( int ) strlen ( response ), content, strlen ( content ) );
+
+    /** Populate item struct **/
+    itm->content = response;
+
+    itm->key = status;
+
+    itm->length = ( size_t ) RESPONSE_LENGTH;
+    itm->next = 0;
+
+    return itm;
+}
+
+
+item *
+hpcd_load_file ( char *filename, size_t base_url_length )
+{
+
+    /**
+     * --------------------
+     * Load files to memory
+     * --------------------
+     */
+
+    FILE *fp;
+
+    /** Get File Length */
+    struct stat info;
+    unsigned long RESPONSE_LENGTH;
+    const char *separator = "/";
+    item *itm = ( item * ) malloc ( sizeof ( item ) );
+
+    stat ( filename, &info );
+
+    /** Get File Content */
+    char *content = ( char * ) malloc ( info.st_size * sizeof ( char ) );
+    fp = fopen ( filename, "rb" );
+    fread ( content, info.st_size, 1, fp );
+    fclose ( fp );
+
+    /** Build response **/
+    char *response_header_part1 =
+        "HTTP/1.1 200 OK\n"
+        "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+        "Server: chipd/0.1\n"
+        "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+        "ETag: \"56d-9989200-1132c580\"\n"
+        "Content-Type: image/gif\n"
+        "Content-Length: ";
+
+    char *response_header_part3 =
+        "\n"
+        "Accept-Ranges: bytes\n"
+        "Connection: close\n"
+        "\n";
+
+    RESPONSE_LENGTH = strlen ( response_header_part1 ) + 10 + strlen (
+                          response_header_part3 ) + ( unsigned long ) info.st_size;
+    char *response = ( char * ) malloc ( RESPONSE_LENGTH );
+
+    /** Concat all string into response **/
+    snprintf ( response, ( size_t ) RESPONSE_LENGTH, "%s%lu%s",
+               response_header_part1, ( unsigned long ) info.st_size, response_header_part3 );
+
+    /** Add file content **/
+    memcpy ( response + ( int ) strlen ( response ), content, info.st_size );
+
+    /** Populate item struct **/
+    itm->content = response;
+
+    itm->key = ( char * ) malloc ( ( strlen ( filename ) - base_url_length + 1 ) *
+                                   sizeof ( char ) );
+    strcpy ( itm->key, filename + ( base_url_length * sizeof ( char ) ) );
+
+    itm->length = ( size_t ) RESPONSE_LENGTH;
+    itm->next = 0;
+
+    return itm;
 }
