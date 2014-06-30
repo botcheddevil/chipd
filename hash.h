@@ -82,4 +82,4 @@ int hpcd_hash_table_expand ( hpcd_hash_table * );
  * Hash tables
  */
 
-hpcd_hash_item *hash_table[255] = {0};
+hpcd_hash_item *hpcd_hash_table_plain[255] = {0};
