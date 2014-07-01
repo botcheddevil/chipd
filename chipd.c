@@ -117,7 +117,7 @@ int main ( int argc, char *argv[] )
      * Load files in a directory
      */
     hpcd_load_directory ( hpcd_cli_setting.directory, hash_table, strlen ( hpcd_cli_setting.directory ) );
-    hpcd_hash_insert ( hash_table, hpcd_load_notfound() );
+    hpcd_hash_item_insert ( hash_table, hpcd_load_notfound() );
 
     hpcd_server_init();
 

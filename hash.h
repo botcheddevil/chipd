@@ -82,4 +82,19 @@ int hpcd_hash_table_expand ( hpcd_hash_table * );
  * Hash tables
  */
 
-hpcd_hash_item *hpcd_hash_table_plain[255] = {0};
+hpcd_hash_table *hpcd_hash_table_plain;
+hpcd_hash_table *hpcd_hash_table_gzip;
+hpcd_hash_table *hpcd_hash_table_deflate;
+
+hpcd_hash_table *hpcd_hash_table_bernstine;
+hpcd_hash_table *hpcd_hash_table_modbernstine;
+hpcd_hash_table *hpcd_hash_table_bernstine31;
+hpcd_hash_table *hpcd_hash_table_bernstine37;
+hpcd_hash_table *hpcd_hash_table_xor;
+hpcd_hash_table *hpcd_hash_table_rot;
+hpcd_hash_table *hpcd_hash_table_sax;
+hpcd_hash_table *hpcd_hash_table_fnv;
+hpcd_hash_table *hpcd_hash_table_oat;
+hpcd_hash_table *hpcd_hash_table_elf;
+hpcd_hash_table *hpcd_hash_table_jen;
+hpcd_hash_table *hpcd_hash_table_murmur2;

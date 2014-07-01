@@ -296,14 +296,14 @@ unsigned int hpcd_hash_jen ( void *key, int length )
  * Hash table Operations
  */
 
-hashtable *hpcd_hash_table_create ( unsigned int ( * hash ) ( void *, int ),
+hpcd_hash_table *hpcd_hash_table_create ( unsigned int ( * hash ) ( void *, int ),
                               int size )
 {
-    hashtable *ht;
+    hpcd_hash_table *ht;
 
     /* Space is allocated for the struct */
-    ht = ( hashtable * )
-         calloc ( 1, sizeof ( hashtable ) + sizeof ( item * ) * size );
+    ht = ( hpcd_hash_table * )
+         calloc ( 1, sizeof ( hpcd_hash_table ) + sizeof ( hpcd_hash_item * ) * size );
 
     ht->algo = hash;
     ht->size = size;
@@ -311,23 +311,10 @@ hashtable *hpcd_hash_table_create ( unsigned int ( * hash ) ( void *, int ),
     return ht;
 }
 
-void hpcd_hash_item_destroy ( item *itm )
-{
-
-    if ( itm == 0 )
-    {
-        return;
-    }
-    hpcd_hash_item_destroy ( itm->next );
-    free ( itm->key );
-    free ( itm->content );
-
-}
-
-void hpcd_hash_table_destroy ( hashtable *ht )
+void hpcd_hash_table_destroy ( hpcd_hash_table *ht )
 {
     int ctr = 0;
-    item *nextitem;
+    hpcd_hash_item *nextitem;
 
     for ( ctr = 0; ctr < ht->size; ctr++ )
     {
@@ -337,13 +324,13 @@ void hpcd_hash_table_destroy ( hashtable *ht )
     free ( ht );
 }
 
-hashtable *hpcd_hash_table_resize ( hashtable *ht, int size )
+hpcd_hash_table *hpcd_hash_table_resize ( hpcd_hash_table *ht, int size )
 {
     int ctr = 0;
-    item *nextitem;
-    item *temp_nextitem;
-    hashtable *newht = ( hashtable * )
-                       calloc ( 1, sizeof ( hashtable ) + sizeof ( item * ) * size );
+    hpcd_hash_item *nextitem;
+    hpcd_hash_item *temp_nextitem;
+    hpcd_hash_table *newht = ( hpcd_hash_table * )
+                       calloc ( 1, sizeof ( hpcd_hash_table ) + sizeof ( hpcd_hash_item * ) * size );
 
     newht->size = size;
     newht->algo = ht->algo;
@@ -369,17 +356,18 @@ hashtable *hpcd_hash_table_resize ( hashtable *ht, int size )
     return newht;
 }
 
+
 /**
  * Insert Item to hash table
  *
- * @param ht  item** hash table
- * @param itm item*  item to insert
+ * @param ht  hpcd_hash_item** hash table
+ * @param itm hpcd_hash_item*  item to insert
  *
  * @return NULL if item is not found
- *         item* if item is found
+ *         hpcd_hash_item* if item is found
  */
 
-item *hpcd_hash_item_fetch ( hashtable *ht, char *key )
+hpcd_hash_item *hpcd_hash_item_fetch ( hpcd_hash_table *ht, char *key )
 {
 
     unsigned int index = ( *ht->algo ) ( key , strlen ( key ) );
@@ -391,7 +379,7 @@ item *hpcd_hash_item_fetch ( hashtable *ht, char *key )
         return NULL;
     }
 
-    item *itm = ht->table[index];
+    hpcd_hash_item *itm = ht->table[index];
 
     while ( 1 )
     {
@@ -415,11 +403,11 @@ item *hpcd_hash_item_fetch ( hashtable *ht, char *key )
 /**
  * Insert Item to hash table
  *
- * @param ht  item** hash table
- * @param itm item*  item to insert
+ * @param ht  hpcd_hash_item** hash table
+ * @param itm hpcd_hash_item*  item to insert
  */
 
-int hpcd_hash_item_insert ( hashtable *ht, item *itm )
+int hpcd_hash_item_insert ( hpcd_hash_table *ht, hpcd_hash_item *itm )
 {
 
     unsigned int index = ( *ht->algo ) ( itm->key , strlen ( itm->key ) );
@@ -432,7 +420,7 @@ int hpcd_hash_item_insert ( hashtable *ht, item *itm )
     }
     else
     {
-        item *nextitem = ht->table[index];
+        hpcd_hash_item *nextitem = ht->table[index];
 
         do
         {
@@ -472,17 +460,17 @@ int hpcd_hash_item_insert ( hashtable *ht, item *itm )
 }
 
 /**
- * Remove Item to hash table
+ * Remove Item from hash table with a specific key
  *
- * @param ht  item** hash table
- * @param itm item*  item to insert
+ * @param ht  hpcd_hash_item** hash table
+ * @param itm hpcd_hash_item*  item to insert
  */
 
-int hpcd_hash_item_remove ( hashtable *ht, char *key )
+int hpcd_hash_item_remove ( hpcd_hash_table *ht, char *key )
 {
 
     unsigned int index = ( *ht->algo ) ( key , strlen ( key ) );
-    item **previousitem;
+    hpcd_hash_item **previousitem;
     int collided = 0;
 
     index = index % ht->size;
@@ -490,7 +478,7 @@ int hpcd_hash_item_remove ( hashtable *ht, char *key )
     if ( ht->table[index] != 0 )
     {
 
-        item *nextitem = ht->table[index];
+        hpcd_hash_item *nextitem = ht->table[index];
         previousitem = &ht->table[index];
 
         while ( nextitem != 0 )
@@ -524,5 +512,25 @@ int hpcd_hash_item_remove ( hashtable *ht, char *key )
     }
 
     return 0;
+
+}
+
+
+/**
+ * Remove item and its subsequent collisions
+ *
+ * @param ht  hpcd_hash_item** hash table
+ */
+
+void hpcd_hash_item_destroy ( hpcd_hash_item *itm )
+{
+
+    if ( itm == 0 )
+    {
+        return;
+    }
+    hpcd_hash_item_destroy ( itm->next );
+    free ( itm->key );
+    free ( itm->content );
 
 }
