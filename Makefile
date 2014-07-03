@@ -9,8 +9,8 @@ FORMATTER = ~/Repos/astyle/build/mac/bin/astyle
 #Final Binary
 #------------
 
-chipd: format hash.o http_parser.o chipd.o
-	$(CC) hash.o http_parser.o chipd.o -o $@
+chipd: format hash.o http_parser.o server.o signals.o load.o chipd.o
+	$(CC) hash.o http_parser.o server.o signals.o load.o chipd.o -o $@ -lz -L./lib/zlib-1.2.8/
 
 chip.o:
 	$(CC) -pthread -c chip.c
@@ -24,6 +24,12 @@ hash.o: hash.c
 
 load.o: load.c
 	$(CC) -c load.c
+
+server.o: server.c
+	$(CC) -c server.c
+
+signals.o: signals.c
+	$(CC) -c signals.c
 
 #---------------
 #Auto Formatting

@@ -4,6 +4,27 @@
 #include "hash.h"
 
 /**
+ * Hash tables
+ */
+
+hpcd_hash_table *hpcd_hash_table_plain;
+hpcd_hash_table *hpcd_hash_table_gzip;
+hpcd_hash_table *hpcd_hash_table_deflate;
+
+hpcd_hash_table *hpcd_hash_table_bernstine;
+hpcd_hash_table *hpcd_hash_table_modbernstine;
+hpcd_hash_table *hpcd_hash_table_bernstine31;
+hpcd_hash_table *hpcd_hash_table_bernstine37;
+hpcd_hash_table *hpcd_hash_table_xor;
+hpcd_hash_table *hpcd_hash_table_rot;
+hpcd_hash_table *hpcd_hash_table_sax;
+hpcd_hash_table *hpcd_hash_table_fnv;
+hpcd_hash_table *hpcd_hash_table_oat;
+hpcd_hash_table *hpcd_hash_table_elf;
+hpcd_hash_table *hpcd_hash_table_jen;
+hpcd_hash_table *hpcd_hash_table_murmur2;
+
+/**
  * Hash functions
  */
 
@@ -296,8 +317,9 @@ unsigned int hpcd_hash_jen ( void *key, int length )
  * Hash table Operations
  */
 
-hpcd_hash_table *hpcd_hash_table_create ( unsigned int ( * hash ) ( void *, int ),
-                              int size )
+hpcd_hash_table *hpcd_hash_table_create ( unsigned int ( * hash ) ( void *,
+        int ),
+        int size )
 {
     hpcd_hash_table *ht;
 
@@ -330,7 +352,7 @@ hpcd_hash_table *hpcd_hash_table_resize ( hpcd_hash_table *ht, int size )
     hpcd_hash_item *nextitem;
     hpcd_hash_item *temp_nextitem;
     hpcd_hash_table *newht = ( hpcd_hash_table * )
-                       calloc ( 1, sizeof ( hpcd_hash_table ) + sizeof ( hpcd_hash_item * ) * size );
+                             calloc ( 1, sizeof ( hpcd_hash_table ) + sizeof ( hpcd_hash_item * ) * size );
 
     newht->size = size;
     newht->algo = ht->algo;

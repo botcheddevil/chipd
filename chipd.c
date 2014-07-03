@@ -14,21 +14,10 @@
 
 #include "chipd.h"
 
-void error ( const char *msg )
-{
-    perror ( msg );
-    exit ( 1 );
-}
-
 int main ( int argc, char *argv[] )
 {
-    int *newsockfd, portno, n,
-        ctr = 0 ;
-    socklen_t clilen;
+    int n;
     char buffer[256];
-    struct sockaddr_in serv_addr, cli_addr;
-    pthread_t thread1;
-    pthread_attr_t attr;
 
     /**
      * Set default options
@@ -109,15 +98,12 @@ int main ( int argc, char *argv[] )
 
     hpcd_register_signal_handlers();
 
-    /* Create detached thread attribute */
-    pthread_attr_init ( &attr );
-    pthread_attr_setdetachstate ( &attr, PTHREAD_CREATE_DETACHED );
-
     /**
      * Load files in a directory
      */
-    hpcd_load_directory ( hpcd_cli_setting.directory, hash_table, strlen ( hpcd_cli_setting.directory ) );
-    hpcd_hash_item_insert ( hash_table, hpcd_load_notfound() );
+    hpcd_load_directory ( hpcd_cli_setting.directory, hpcd_hash_table_plain,
+                          strlen ( hpcd_cli_setting.directory ) );
+    hpcd_hash_item_insert ( hpcd_hash_table_plain, hpcd_load_notfound() );
 
     hpcd_server_init();
 

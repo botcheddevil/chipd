@@ -1,3 +1,8 @@
+#ifndef _HPCD_LOAD_H_INCLUDED_
+#define _HPCD_LOAD_H_INCLUDED_
+
+#include "hash.h"
+
 #define HTTP_STATUS_100 "100 Continue"
 #define HTTP_STATUS_101 "101 Switching Protocols"
 #define HTTP_STATUS_102 "102 Processing"
@@ -74,4 +79,8 @@ enum compression { none, c_gzip, c_deflate };
  */
 
 void *hpcd_load_httpcontent ( headers *, void *, size_t );
-void *hpcd_load_file ( char * , const int, compression );
+hpcd_hash_item *hpcd_load_file ( char * , size_t );
+void hpcd_load_directory ( const char *, hpcd_hash_table *, size_t );
+hpcd_hash_item *hpcd_load_notfound ( );
+
+#endif

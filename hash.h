@@ -1,20 +1,27 @@
+#ifndef _HPCD_HASH_H_INCLUDED_
+#define _HPCD_HASH_H_INCLUDED_
 
 #include "http_parser.h"
-#include "hash.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <signal.h>
-#include <pthread.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <limits.h>
 #include <errno.h>
-#include <getopt.h>
+
+#define HPCD_HASH_GUESS "guess"
+#define HPCD_HASH_XOR "xor"
+#define HPCD_HASH_BERNSTINE "bern"
+#define HPCD_HASH_BERNSTINE31 "bern31"
+#define HPCD_HASH_BERNSTINE37 "bern37"
+#define HPCD_HASH_ROT "rot"
+#define HPCD_HASH_MODBERNSTINE "modbern"
+#define HPCD_HASH_SAX "sax"
+#define HPCD_HASH_OAT "oat"
+#define HPCD_HASH_MURMUR2 "murmur2"
+#define HPCD_HASH_ELF "elf"
+#define HPCD_HASH_JEN "jen"
 
 /**
  * Define struct
@@ -69,32 +76,15 @@ unsigned int hpcd_hash_murmur2 ( void *, int );
 hpcd_hash_item *hpcd_hash_item_fetch ( hpcd_hash_table *, char * );
 int hpcd_hash_item_insert ( hpcd_hash_table *, hpcd_hash_item * );
 int hpcd_hash_item_remove ( hpcd_hash_table *, char * );
+void hpcd_hash_item_destroy ( hpcd_hash_item * );
 
 /**
  * Hash table Operations
  */
 
-hpcd_hash_table *hpcd_hash_table_create ( unsigned int ( * hash ) ( void *, int ), int );
+hpcd_hash_table *hpcd_hash_table_create ( unsigned int ( * hash ) ( void *,
+        int ), int );
 void hpcd_hash_table_destroy ( hpcd_hash_table * );
 int hpcd_hash_table_expand ( hpcd_hash_table * );
 
-/**
- * Hash tables
- */
-
-hpcd_hash_table *hpcd_hash_table_plain;
-hpcd_hash_table *hpcd_hash_table_gzip;
-hpcd_hash_table *hpcd_hash_table_deflate;
-
-hpcd_hash_table *hpcd_hash_table_bernstine;
-hpcd_hash_table *hpcd_hash_table_modbernstine;
-hpcd_hash_table *hpcd_hash_table_bernstine31;
-hpcd_hash_table *hpcd_hash_table_bernstine37;
-hpcd_hash_table *hpcd_hash_table_xor;
-hpcd_hash_table *hpcd_hash_table_rot;
-hpcd_hash_table *hpcd_hash_table_sax;
-hpcd_hash_table *hpcd_hash_table_fnv;
-hpcd_hash_table *hpcd_hash_table_oat;
-hpcd_hash_table *hpcd_hash_table_elf;
-hpcd_hash_table *hpcd_hash_table_jen;
-hpcd_hash_table *hpcd_hash_table_murmur2;
+#endif

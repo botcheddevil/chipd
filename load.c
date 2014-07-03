@@ -118,7 +118,8 @@ void *hpcd_load_httpcontent (
 }
 
 void
-hpcd_load_directory ( const char *dir_name, item *ht[255], size_t base_url_length )
+hpcd_load_directory ( const char *dir_name, hpcd_hash_table *ht,
+                      size_t base_url_length )
 {
     DIR *d;
     char *filename;
@@ -183,14 +184,14 @@ hpcd_load_directory ( const char *dir_name, item *ht[255], size_t base_url_lengt
                 printf ( "%s", filename );
                 printf ( " : Entering" );
                 printf ( "\n" );
-                load_dir ( path, ht, base_url_length );
+                hpcd_load_directory ( path, ht, base_url_length );
             }
 
         }
         else
         {
 
-            hash_insert ( ht, load_file_memory ( filename, base_url_length ) );
+            hpcd_hash_item_insert ( ht, hpcd_load_file ( filename, base_url_length ) );
             printf ( "%s", filename );
             printf ( " : Loaded\n" );
 
@@ -205,8 +206,8 @@ hpcd_load_directory ( const char *dir_name, item *ht[255], size_t base_url_lengt
     }
 }
 
-item *
-hpcd_load_notfound ( char *status )
+hpcd_hash_item *
+hpcd_load_notfound ( )
 {
 
     /**
@@ -217,7 +218,7 @@ hpcd_load_notfound ( char *status )
 
     unsigned long RESPONSE_LENGTH;
     const char *separator = "/";
-    item *itm = ( item * ) malloc ( sizeof ( item ) );
+    hpcd_hash_item *itm = ( hpcd_hash_item * ) malloc ( sizeof ( hpcd_hash_item ) );
 
     /** Get File Content */
     char *content = "<h2>404 File Not Found</h2> chipd/0.1";
@@ -250,10 +251,10 @@ hpcd_load_notfound ( char *status )
     /** Add file content **/
     memcpy ( response + ( int ) strlen ( response ), content, strlen ( content ) );
 
-    /** Populate item struct **/
+    /** Populate hpcd_hash_item struct **/
     itm->content = response;
 
-    itm->key = status;
+    itm->key = "404";
 
     itm->length = ( size_t ) RESPONSE_LENGTH;
     itm->next = 0;
@@ -262,7 +263,7 @@ hpcd_load_notfound ( char *status )
 }
 
 
-item *
+hpcd_hash_item *
 hpcd_load_file ( char *filename, size_t base_url_length )
 {
 
@@ -278,7 +279,7 @@ hpcd_load_file ( char *filename, size_t base_url_length )
     struct stat info;
     unsigned long RESPONSE_LENGTH;
     const char *separator = "/";
-    item *itm = ( item * ) malloc ( sizeof ( item ) );
+    hpcd_hash_item *itm = ( hpcd_hash_item * ) malloc ( sizeof ( hpcd_hash_item ) );
 
     stat ( filename, &info );
 
@@ -315,7 +316,7 @@ hpcd_load_file ( char *filename, size_t base_url_length )
     /** Add file content **/
     memcpy ( response + ( int ) strlen ( response ), content, info.st_size );
 
-    /** Populate item struct **/
+    /** Populate hpcd_hash_item struct **/
     itm->content = response;
 
     itm->key = ( char * ) malloc ( ( strlen ( filename ) - base_url_length + 1 ) *
