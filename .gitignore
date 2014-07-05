@@ -3,3 +3,4 @@ a.out
 *.orig
 *.o
 *.lo
+test_*

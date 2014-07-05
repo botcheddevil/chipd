@@ -4,32 +4,32 @@
 
 CC ?= gcc
 FORMATTER = ~/Repos/astyle/build/mac/bin/astyle
-
+DEBUG_FLAG = -g
 #------------
 #Final Binary
 #------------
 
 chipd: format hash.o http_parser.o server.o signals.o load.o chipd.o
-	$(CC) hash.o http_parser.o server.o signals.o load.o chipd.o -o $@ -lz -L./lib/zlib-1.2.8/
+	$(CC) hash.o http_parser.o server.o signals.o load.o chipd.o -o $@ -lz
 
 chip.o:
-	$(CC) -pthread -c chip.c
+	$(CC) $(DEBUG_FLAG) -c chip.c
 
 #------------------------
 #Compile External Library
 #------------------------
 
 hash.o: hash.c
-	$(CC) -c hash.c
+	$(CC) $(DEBUG_FLAG) -c hash.c
 
 load.o: load.c
-	$(CC) -c load.c
+	$(CC) $(DEBUG_FLAG) -c load.c
 
 server.o: server.c
-	$(CC) -c server.c
+	$(CC) $(DEBUG_FLAG) -c server.c
 
 signals.o: signals.c
-	$(CC) -c signals.c
+	$(CC) $(DEBUG_FLAG) -c signals.c
 
 #---------------
 #Auto Formatting
@@ -73,5 +73,4 @@ test_load.o:
 clean:
 	rm -f *.o a.out chipd test *.orig
 	rm -f ./tests/*.orig
-	rm -f ./lib/zlib-1.2.8/*.o ./lib/zlib-1.2.8/*.dylib
 	rm -f configure.log

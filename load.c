@@ -132,6 +132,7 @@ hpcd_load_directory ( const char *dir_name, hpcd_hash_table *ht,
 
     DIR *d;
     char *filename;
+    hpcd_hash_item *fileitm;
 
     /* Open the directory specified by "dir_name". */
     d = opendir ( dir_name );
@@ -210,7 +211,7 @@ hpcd_load_directory ( const char *dir_name, hpcd_hash_table *ht,
         {
 
             printf ( "Found file\n" );
-            hpcd_hash_item *fileitm = hpcd_load_file ( filename, base_url_length );
+            fileitm = hpcd_load_file ( filename, base_url_length );
             printf ( "File loaded" );
             hpcd_hash_item_insert ( ht, fileitm );
             printf ( "%s", filename );
@@ -299,25 +300,24 @@ hpcd_load_file ( char *filename, size_t base_url_length )
      * --------------------
      */
 
-    FILE *fp;
+    //FILE *fp;
 
     /** Get File Length */
-    struct stat info;
-    unsigned long response_length;
-    const char *separator = "/";
+    //struct stat info;
+    //unsigned long response_length;
+    //const char *separator = "/";
     hpcd_hash_item *itm = ( hpcd_hash_item * ) malloc ( sizeof ( hpcd_hash_item ) );
-    printf ( " %x\n ", &itm );
-    stat ( filename, &info );
+    //stat ( filename, &info );
 
     /** Get File Content */
-    char *content = ( char * ) malloc ( info.st_size * sizeof ( char ) );
-    fp = fopen ( filename, "rb" );
-    fread ( content, info.st_size, 1, fp );
-    fclose ( fp );
+    //char *content = ( char * ) malloc ( info.st_size * sizeof ( char ) );
+    //fp = fopen ( filename, "rb" );
+    //fread ( content, info.st_size, 1, fp );
+    //fclose ( fp );
 
-    printf ( "Hash load file %s\n", filename );
+    //printf ( "Hash load file %s\n", filename );
 
-    /** Build response **/
+    /** Build response **
     char *response_header_part1 =
         "HTTP/1.1 200 OK\n"
         "Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
@@ -332,30 +332,29 @@ hpcd_load_file ( char *filename, size_t base_url_length )
         "Accept-Ranges: bytes\n"
         "Connection: close\n"
         "\n";
-
-    response_length = strlen ( response_header_part1 ) + 10 + strlen (
-                          response_header_part3 ) + ( unsigned long ) info.st_size;
-    char *response = ( char * ) malloc ( response_length );
+    */
+    //response_length = strlen ( response_header_part1 ) + 10 + strlen (
+    //                      response_header_part3 ) + ( unsigned long ) info.st_size;
+    //char *response = ( char * ) malloc ( response_length );
 
     /** Concat all string into response **/
-    snprintf ( response, ( size_t ) response_length, "%s%lu%s",
-               response_header_part1, ( unsigned long ) info.st_size, response_header_part3 );
+    //snprintf ( response, ( size_t ) response_length, "%s%lu%s",
+    //           response_header_part1, ( unsigned long ) info.st_size, response_header_part3 );
 
     /** Add file content **/
-    memcpy ( response + ( int ) strlen ( response ), content, info.st_size );
+    //memcpy ( response + ( int ) strlen ( response ), content, info.st_size );
 
     /** Populate hpcd_hash_item struct **/
-    itm->content = response;
+    //itm->content = response;
 
-    itm->key = ( char * ) malloc ( ( strlen ( filename ) - base_url_length + 1 ) *
-                                   sizeof ( char ) );
-    strcpy ( itm->key, filename + ( base_url_length * sizeof ( char ) ) );
+    //itm->key = ( char * ) malloc ( ( strlen ( filename ) - base_url_length + 1 ) *
+    //sizeof ( char ) );
+    //strcpy ( itm->key, filename + ( base_url_length * sizeof ( char ) ) );
 
-    itm->length = ( size_t ) response_length;
-    itm->next = 0;
+    //itm->length = ( size_t ) response_length;
+    //itm->next = 0;
 
-    printf ( "end:Hash load file %s\n ", filename );
-    printf ( " %x\n ", &itm );
+    printf ( "size of hash item %d\n ", ( int ) sizeof ( * itm ) );
 
     return itm;
 }
