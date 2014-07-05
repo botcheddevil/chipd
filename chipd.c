@@ -14,10 +14,10 @@
 
 #include "chipd.h"
 
+hpcd_cli_settings hpcd_cli_setting;
+
 int main ( int argc, char *argv[] )
 {
-    int n;
-    char buffer[256];
 
     /**
      * Set default options
@@ -32,6 +32,7 @@ int main ( int argc, char *argv[] )
     hpcd_cli_setting.packet_cache = 1;
     hpcd_cli_setting.gzip_content = 1;
     hpcd_cli_setting.deflate_content = 1;
+
 
     /**
      * Read options provided

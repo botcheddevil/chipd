@@ -10,6 +10,8 @@
 #define HTTP_VERSION "1.1"
 #define HPCD_DEFAULT_PORT 80
 
+typedef struct hpcd_cli_settings hpcd_cli_settings;
+
 struct hpcd_cli_settings
 {
     int verbose;
@@ -21,4 +23,4 @@ struct hpcd_cli_settings
     int packet_cache;
     int gzip_content;
     int deflate_content;
-} hpcd_cli_setting;
+};

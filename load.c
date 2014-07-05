@@ -5,6 +5,9 @@
 #include "load.h"
 #include "chipd.h"
 #include "zlib.h"
+#include "hash.h"
+
+extern hpcd_cli_settings hpcd_cli_setting;
 
 void *hpcd_load_httpcontent (
     headers *httphds, void *content,
@@ -121,6 +124,12 @@ void
 hpcd_load_directory ( const char *dir_name, hpcd_hash_table *ht,
                       size_t base_url_length )
 {
+
+    if ( hpcd_cli_setting.verbose )
+    {
+        printf ( "Loading directory: %s\n", dir_name );
+    }
+
     DIR *d;
     char *filename;
 
@@ -133,6 +142,11 @@ hpcd_load_directory ( const char *dir_name, hpcd_hash_table *ht,
         fprintf ( stderr, "Cannot open directory '%s': %s\n",
                   dir_name, strerror ( errno ) );
         exit ( EXIT_FAILURE );
+    }
+
+    if ( hpcd_cli_setting.verbose )
+    {
+        printf ( "Directory successfully opened\n" );
     }
 
     /** Start looking for files to load**/
@@ -160,6 +174,8 @@ hpcd_load_directory ( const char *dir_name, hpcd_hash_table *ht,
         strcat ( filename, "/" );
         strcat ( filename, d_name );
 
+        printf ( "Reading directory/filename %s\n", filename );
+
         /* See if "entry" is a subdirectory of "d". */
         if ( entry->d_type & DT_DIR )
         {
@@ -169,6 +185,8 @@ hpcd_load_directory ( const char *dir_name, hpcd_hash_table *ht,
             if ( strcmp ( d_name, ".." ) != 0 &&
                     strcmp ( d_name, "." ) != 0 )
             {
+                printf ( "Found directory\n" );
+
                 int path_length;
                 char path[PATH_MAX];
 
@@ -191,12 +209,20 @@ hpcd_load_directory ( const char *dir_name, hpcd_hash_table *ht,
         else
         {
 
-            hpcd_hash_item_insert ( ht, hpcd_load_file ( filename, base_url_length ) );
+            printf ( "Found file\n" );
+            hpcd_hash_item *fileitm = hpcd_load_file ( filename, base_url_length );
+            printf ( "File loaded" );
+            hpcd_hash_item_insert ( ht, fileitm );
             printf ( "%s", filename );
             printf ( " : Loaded\n" );
 
         }
     }
+
+    printf ( "Halt and catch fire\n" );
+
+    exit ( 0 );
+
     /* After going through all the entries, close the directory. */
     if ( closedir ( d ) )
     {
@@ -277,10 +303,10 @@ hpcd_load_file ( char *filename, size_t base_url_length )
 
     /** Get File Length */
     struct stat info;
-    unsigned long RESPONSE_LENGTH;
+    unsigned long response_length;
     const char *separator = "/";
     hpcd_hash_item *itm = ( hpcd_hash_item * ) malloc ( sizeof ( hpcd_hash_item ) );
-
+    printf ( " %x\n ", &itm );
     stat ( filename, &info );
 
     /** Get File Content */
@@ -288,6 +314,8 @@ hpcd_load_file ( char *filename, size_t base_url_length )
     fp = fopen ( filename, "rb" );
     fread ( content, info.st_size, 1, fp );
     fclose ( fp );
+
+    printf ( "Hash load file %s\n", filename );
 
     /** Build response **/
     char *response_header_part1 =
@@ -305,12 +333,12 @@ hpcd_load_file ( char *filename, size_t base_url_length )
         "Connection: close\n"
         "\n";
 
-    RESPONSE_LENGTH = strlen ( response_header_part1 ) + 10 + strlen (
+    response_length = strlen ( response_header_part1 ) + 10 + strlen (
                           response_header_part3 ) + ( unsigned long ) info.st_size;
-    char *response = ( char * ) malloc ( RESPONSE_LENGTH );
+    char *response = ( char * ) malloc ( response_length );
 
     /** Concat all string into response **/
-    snprintf ( response, ( size_t ) RESPONSE_LENGTH, "%s%lu%s",
+    snprintf ( response, ( size_t ) response_length, "%s%lu%s",
                response_header_part1, ( unsigned long ) info.st_size, response_header_part3 );
 
     /** Add file content **/
@@ -323,8 +351,11 @@ hpcd_load_file ( char *filename, size_t base_url_length )
                                    sizeof ( char ) );
     strcpy ( itm->key, filename + ( base_url_length * sizeof ( char ) ) );
 
-    itm->length = ( size_t ) RESPONSE_LENGTH;
+    itm->length = ( size_t ) response_length;
     itm->next = 0;
+
+    printf ( "end:Hash load file %s\n ", filename );
+    printf ( " %x\n ", &itm );
 
     return itm;
 }
