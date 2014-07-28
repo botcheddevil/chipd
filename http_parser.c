@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <stdio.h>
 
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
@@ -1579,6 +1580,7 @@ size_t http_parser_execute (http_parser *parser,
         if (settings->on_headers_complete) {
           switch (settings->on_headers_complete(parser)) {
             case 0:
+            printf("called on headers complete\n");
               break;
 
             case 1:

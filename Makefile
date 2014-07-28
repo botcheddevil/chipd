@@ -10,10 +10,10 @@ DEBUG_FLAG = -g
 #------------
 
 chipd: format hash.o http_parser.o server.o signals.o load.o chipd.o
-	$(CC) hash.o http_parser.o server.o signals.o load.o chipd.o -o $@ -lz
+	$(CC) $(DEBUG_FLAG) hash.o http_parser.o server.o signals.o load.o chipd.o -o $@ -lz
 
-chip.o:
-	$(CC) $(DEBUG_FLAG) -c chip.c
+chipd.o: chipd.c
+	$(CC) $(DEBUG_FLAG) -c chipd.c
 
 #------------------------
 #Compile External Library
@@ -49,7 +49,7 @@ format:
 #------------------------
 
 http_parser.o: http_parser.c http_parser.h
-	$(CC) -c http_parser.c
+	$(CC) $(DEBUG_FLAG) -c http_parser.c
 
 zlib:
 	cd ./lib/zlib-1.2.8/;./configure;make

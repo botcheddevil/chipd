@@ -102,6 +102,10 @@ int main ( int argc, char *argv[] )
     /**
      * Load files in a directory
      */
+    hpcd_hash_table_plain = hpcd_hash_table_create ( &hpcd_hash_xor,
+                            hpcd_load_directory_filecount ( hpcd_cli_setting.directory,
+                                    hpcd_cli_setting.filetypes ) );
+
     hpcd_load_directory ( hpcd_cli_setting.directory, hpcd_hash_table_plain,
                           strlen ( hpcd_cli_setting.directory ) );
     hpcd_hash_item_insert ( hpcd_hash_table_plain, hpcd_load_notfound() );

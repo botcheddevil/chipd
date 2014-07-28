@@ -8,7 +8,7 @@
 #define SERVER_NAME_FULL "HIgh Performance Content Delivery"
 
 #define HTTP_VERSION "1.1"
-#define HPCD_DEFAULT_PORT 80
+#define HPCD_DEFAULT_PORT 8080
 
 typedef struct hpcd_cli_settings hpcd_cli_settings;
 

@@ -4,3 +4,4 @@ a.out
 *.o
 *.lo
 test_*
+.DS_Store

@@ -46,15 +46,14 @@ void hpcd_server_init() {
     /* configure setting for serv_addr */
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons ( *hpcd_cli_setting.port );
+    serv_addr.sin_port = htons ( atoi ( hpcd_cli_setting.port ) );
 
     /* configure the socket server addr */
-    printf ( "Binding socket\n" );
-    if ( bind ( hpcd_server_socket_fd, ( struct sockaddr * ) &serv_addr,
-                sizeof ( serv_addr ) ) < 0 )
+    printf ( "Binding socket %s\n", hpcd_cli_setting.port );
+    if ( (bind ( hpcd_server_socket_fd, ( struct sockaddr * ) &serv_addr,
+                sizeof ( serv_addr ) ) ) < 0 )
     {
-        printf ( "ERROR on binding" );
-        exit ( 1 );
+        do { perror("bind"); exit(EXIT_FAILURE); } while (0);
     }
 
     /* start listening on socket */
@@ -80,7 +79,7 @@ void hpcd_server_init() {
         printf ( "Accepted!! %d\n", ++ctr );
         if ( *newsockfd < 0 )
         {
-            printf ( "ERROR on accept" );
+            printf ( "ERROR on accept\n" );
             exit ( 1 );
         }
     }
@@ -89,16 +88,45 @@ void hpcd_server_init() {
 
 int hpcd_server_handle_on_url ( http_parser *parser, const char *at, size_t length )
 {
-    int n,
-        newsockfd = * ( ( int * ) parser->data );
+    hpcd_server_http_request *request_container = parser->data;
+    request_container->url = ( char * ) malloc ( ( ( int ) length * sizeof ( char ) ) );
+
+    strncpy ( request_container->url, at, length );
+
+    printf("Found URL: %s\n", request_container->url);
+
+    return 0;
+}
+
+int hpcd_server_handle_on_headers_complete ( http_parser *parser )
+{
+    printf("Headers complete\n");
+
+    return 0;
+}
+
+int hpcd_server_handle_on_header_field ( http_parser *parser, const char *at, size_t length )
+{
+    printf("On header field : %.*s\n", (int) length, at);
+
+    return 0;
+}
+
+int hpcd_server_handle_on_header_value ( http_parser *parser, const char *at, size_t length )
+{
+    printf("On header value : %.*s\n", (int) length, at);
+
+    return 0;
+}
+
+int hpcd_server_handle_on_message_complete ( http_parser *parser ) {
+
+    hpcd_server_http_request *request_container = parser->data;
     hpcd_hash_item *itm;
-    char *key = ( char * ) malloc ( ( int ) length * sizeof ( char ) );
-    strncpy ( key, at, length );
+    printf("Message has completed\n");
+    //printf ( "Url: %s\n", request_container->url );
 
-    printf ( "Url: %.*s\n", ( int ) length, key );
-
-    itm = hpcd_hash_item_fetch ( hpcd_hash_table_plain, key );
-
+    itm = hpcd_hash_item_fetch ( hpcd_hash_table_plain, request_container->url );
 
     if ( itm == NULL )
     {
@@ -106,15 +134,16 @@ int hpcd_server_handle_on_url ( http_parser *parser, const char *at, size_t leng
         itm = hpcd_hash_item_fetch ( hpcd_hash_table_plain, "404" );
     }
 
-    n = write ( newsockfd, itm->content, itm->length );
-
-    if ( n < 0 )
+    if ( write ( *request_container->sock_fd, itm->content, itm->length ) < 0 )
     {
-        printf ( "ERROR writing to socket" );
-        exit ( 1 );
+        do { perror("write"); exit(EXIT_FAILURE); } while (0);
     }
 
+    close(*request_container->sock_fd);
 
+    request_container->complete = 1;
+
+    printf("request_container->complete %d\n", request_container->complete);
 
     return 0;
 }
@@ -126,40 +155,73 @@ void *hpcd_server_handle_connection ( void *arg )
         newsockfd = * ( ( int * ) arg );
     free ( arg );
 
+
+    /** Set time limit on execution of thread **/
+
+    clock_t begin, end;
+    double time_spent = 0;
+
+    begin = clock();
+
+
     http_parser_settings settings;
+    hpcd_server_http_request *request_container = (hpcd_server_http_request *) malloc ( sizeof ( hpcd_server_http_request ) );
+    request_container->complete = 0;
+
 
     memset ( &settings, 0, sizeof ( settings ) );
     settings.on_url = hpcd_server_handle_on_url;
-
+    settings.on_message_complete = hpcd_server_handle_on_message_complete;
+    settings.on_headers_complete = hpcd_server_handle_on_headers_complete;
+    settings.on_header_field = hpcd_server_handle_on_header_field;
+    settings.on_header_value = hpcd_server_handle_on_header_value;
 
     /* Clear the buffer */
     bzero ( buffer, 80 * 1024 );
 
     http_parser *parser = malloc ( sizeof ( http_parser ) );
     http_parser_init ( parser, HTTP_REQUEST );
-    parser->data = &newsockfd;
+    request_container->sock_fd = &newsockfd;
+    parser->data = request_container;
 
-    /* Reading from buffer */
-    printf ( "Reading from buffer\n" );
-    n = recv ( newsockfd, buffer, 80 * 1024, 0 );
+    while(!request_container->complete) {
 
-    if ( n < 0 )
-    {
-        printf ( "ERROR reading from socket" );
-        exit ( 1 );
+        /* Reading from buffer */
+        //printf ( "Reading from buffer: %d\n ", request_container->complete );
+        n = recv ( newsockfd, buffer, 80 * 1024, 0 );
+
+        if ( n < 0 )
+        {
+            printf ( "ERROR reading from socket %d", n );
+            exit ( 1 );
+        }
+
+        //printf("captured n %d\n", n);
+
+        size_t nparsed = http_parser_execute ( parser, &settings, buffer, n );
+
+        if ( nparsed != ( size_t ) n )
+        {
+            fprintf ( stderr,
+                      "Error: %s (%s)\n",
+                      http_errno_description ( HTTP_PARSER_ERRNO ( parser ) ),
+                      http_errno_name ( HTTP_PARSER_ERRNO ( parser ) ) );
+        }
+
+        bzero ( buffer, n );
+
+
+        /** Thread execution time **/
+
+        end = clock();
+        if (((double)(end - begin) / CLOCKS_PER_SEC) > 60) {
+            printf("Request timed out\n");
+            close(*request_container->sock_fd);
+            break;
+        }
     }
 
-    size_t nparsed = http_parser_execute ( parser, &settings, buffer, n );
-
-    if ( nparsed != ( size_t ) n )
-    {
-        fprintf ( stderr,
-                  "Error: %s (%s)\n",
-                  http_errno_description ( HTTP_PARSER_ERRNO ( parser ) ),
-                  http_errno_name ( HTTP_PARSER_ERRNO ( parser ) ) );
-    }
-
-    close ( newsockfd );
+    printf("Loop Closed\n");
 
     return NULL;
 }

@@ -432,8 +432,6 @@ hpcd_hash_item *hpcd_hash_item_fetch ( hpcd_hash_table *ht, char *key )
 int hpcd_hash_item_insert ( hpcd_hash_table *ht, hpcd_hash_item *itm )
 {
 
-    printf ( "hash item insert:start" );
-
     unsigned int index = ( *ht->algo ) ( itm->key , strlen ( itm->key ) );
 
     index = index % ht->size;
@@ -478,8 +476,6 @@ int hpcd_hash_item_insert ( hpcd_hash_table *ht, hpcd_hash_item *itm )
     }
 
     ht->item_count++;
-
-    printf ( "hash item insert:end" );
 
     return 1;
 
